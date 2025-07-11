@@ -1,0 +1,17 @@
+# Visual Studio Code (VSCode) settings
+.vscode/
+
+# CMake build directories
+build/
+*/build/
+*/*/build/
+
+# Ignore the main application
+hopscotch_ht_app
+
+# Other common ignores
+*.o
+*.a
+*.so
+*.out
+*.log
