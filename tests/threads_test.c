@@ -59,7 +59,7 @@ int thread_insert_worker(void *arg) {
 	//--------------------------------------------------------------------------
 	for(size_t i = start_idx; i < end_idx; i++) {
 		if(!data->pdata[i].inserted) continue;
-		if (ht_remove_key(data->ht, data->hash_function, data->pdata[i].key)) {
+		if(ht_remove_key(data->ht, data->hash_function, data->pdata[i].key)) {
 			atomic_fetch_add(data->keys_removed, 1);
 		}
 	}
@@ -101,7 +101,7 @@ int thread_print_progress_worker(void *arg) {
 	while(1) {
 		printf("\033[H\033[J");
 		printf("Performing operations...\n");
-		for (size_t i = 0; i < number_of_threads; i++) {
+		for(size_t i = 0; i < number_of_threads; i++) {
 			char i_stage = atomic_load(&progress_stages[i][PROGRESS_STAGE_INSERT]);
 			char c_stage = atomic_load(&progress_stages[i][PROGRESS_STAGE_CONTAINS]);
 			char r_stage = atomic_load(&progress_stages[i][PROGRESS_STAGE_REMOVE]);
@@ -128,10 +128,10 @@ int thread_print_progress_worker(void *arg) {
 }
 
 void free_concurrent_inserts_mm_data(concurrent_inserts_mm_data *data) {
-	if (!data) return;
+	if(!data) return;
 
-	if (data->progress_stages) {
-		for (size_t i = 0; i < data->number_of_threads; i++) {
+	if(data->progress_stages) {
+		for(size_t i = 0; i < data->number_of_threads; i++) {
 			free(data->progress_stages[i]);
 		}
 		free(data->progress_stages);
@@ -143,7 +143,7 @@ void free_concurrent_inserts_mm_data(concurrent_inserts_mm_data *data) {
 	if(data->thread_benchmark_data)
 		free(data->thread_benchmark_data);
 
-	if (data->pdata) {
+	if(data->pdata) {
 		free_test_data(data->pdata, data->number_of_elements);
 	}
 
@@ -239,7 +239,7 @@ bool test_run_concurrent(
 	// I - Insert; C - Contains; R - Remove;
 	_Atomic(char) **progress_stages; // Pointer to 'I', 'C', 'R'
 	progress_stages = malloc(sizeof(char *) * number_of_threads);
-	for (size_t i = 0; i < number_of_threads; i++) {
+	for(size_t i = 0; i < number_of_threads; i++) {
 		progress_stages[i] = malloc(sizeof(char) * PROGRESS_STAGE_TOTAL);
 		if(!progress_stages[i]) {
 			printf("[TEST %s] Error: Unable to create progress_stage %ld\n", __func__, i);
@@ -267,7 +267,7 @@ bool test_run_concurrent(
 	};
 
 	// Initialize thread_insert_worker data.
-	for (size_t i = 0; i < number_of_threads; i++) {
+	for(size_t i = 0; i < number_of_threads; i++) {
 		thread_insert_worker_data[i] = (ht_thread_insert_data_t){
 			.ht = ht,
 			.hash_function = hash_function,
@@ -283,7 +283,7 @@ bool test_run_concurrent(
 			.benchmark_data = thread_benchmark_data
 		};
 		// Last thread gets remaining keys.
-		if (i == number_of_threads - 1) {
+		if(i == number_of_threads - 1) {
 			thread_insert_worker_data[i].keys_to_insert = number_of_elements -
 				(keys_per_thread * (number_of_threads - 1));
 		}
@@ -301,8 +301,8 @@ bool test_run_concurrent(
 	//--------------------------------------------------------------------------
 	// Create thread_insert_worker.
 	//--------------------------------------------------------------------------
-	for (size_t i = 0; i < number_of_threads; i++) {
-		if (thrd_create(&threads_insert_worker[i], thread_insert_worker, 
+	for(size_t i = 0; i < number_of_threads; i++) {
+		if(thrd_create(&threads_insert_worker[i], thread_insert_worker, 
 			&thread_insert_worker_data[i]) != thrd_success) {
 			printf("[TEST %s] Error: Failed to create insert worker thread", __func__);
 			return false;
@@ -312,7 +312,7 @@ bool test_run_concurrent(
 	//--------------------------------------------------------------------------
 	// Wait for threads to be completed.
 	//--------------------------------------------------------------------------
-	for (size_t i = 0; i < number_of_threads; i++) {
+	for(size_t i = 0; i < number_of_threads; i++) {
 		thrd_join(threads_insert_worker[i], NULL);
 	}
 	thrd_join(thread_print_progresst_worker, NULL);

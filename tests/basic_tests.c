@@ -43,7 +43,7 @@ bool test_lookup_for_specific_key_value(
 
 	BENCHMARK_START
 	for(size_t i = 0; i < number_of_elements; i++) {
-		if (ht_insert(ht, hash_function, pdata[i].key, pdata[i].value)) {
+		if(ht_insert(ht, hash_function, pdata[i].key, pdata[i].value)) {
 			pdata[i].inserted = true;
 			inserted_els++;
 		}
@@ -138,7 +138,7 @@ bool test_insert_remove_elements(
 	int inserted_els = 0;
 	printf("[TEST %s] INSERT flow started... \n", __func__);
 	for(size_t i = 0; i < number_of_elements; i++) {
-		if (!ht_insert(ht, hash_function, pdata[i].key, pdata[i].value)) {
+		if(!ht_insert(ht, hash_function, pdata[i].key, pdata[i].value)) {
 			missing_inserted_els++;
 		} else {
 			pdata[i].inserted = true;
@@ -159,11 +159,11 @@ bool test_insert_remove_elements(
 	if(validate_contains) {
 		printf("[TEST %s] VALIDATE keys flow started...\n", __func__);
 		int missing = 0;
-		for (size_t i = 0; i < number_of_elements; i++) {
+		for(size_t i = 0; i < number_of_elements; i++) {
 			if(!pdata[i].inserted) {
 				continue;
 			}
-			if (!ht_contains_key(ht, hash_function, pdata[i].key, NULL)) {
+			if(!ht_contains_key(ht, hash_function, pdata[i].key, NULL)) {
 				missing++;
 			}
 		}
@@ -177,11 +177,11 @@ bool test_insert_remove_elements(
 	if(need_to_remove) {
 		printf("[TEST %s] REMOVE keys flow started...\n", __func__);
 		int missing_removes = 0;
-		for (size_t i = 0; i < number_of_elements; i++) {
+		for(size_t i = 0; i < number_of_elements; i++) {
 			if(!pdata[i].inserted) {
 				continue;
 			}
-			if (!ht_remove_key(ht, hash_function, pdata[i].key)) {
+			if(!ht_remove_key(ht, hash_function, pdata[i].key)) {
 				missing_removes++;
 			}
 		}
@@ -220,13 +220,13 @@ bool test_relocation_and_max_relocation_value() {
 		return false;
 	}
 	printf("[TEST %s] Number of elements: %d\n", __func__, number_of_elements);
-	for (size_t i = 0; i < number_of_elements; i += 10) {
+	for(size_t i = 0; i < number_of_elements; i += 10) {
 		printf("[TEST %s] ", __func__);
 		PRINT_KEY_VALUE(pdata[i].key, pdata[i].value);
-		if (i != number_of_elements - 1)
+		if(i != number_of_elements - 1)
 			printf("[TEST %s] ... \n", __func__);
 	}
-	for (size_t i = 0; i < number_of_elements; i ++) {
+	for(size_t i = 0; i < number_of_elements; i ++) {
 		if(!ht_insert(ht, dummy_set_1_hash, pdata[i].key, pdata[i].value)) {
 			els_in_exceeded_relocation++;
 			printf("[TEST %s] INFO MSG: Unable to relocate ", __func__);

@@ -21,21 +21,21 @@ int generate_random_pair(uint8_t *key, uint8_t *value) {
 
 	// open  /dev/urandom.
 	int fd = open("/dev/urandom", O_RDONLY);
-	if (fd == -1) {
+	if(fd == -1) {
 		printf("Error: Unable to open /dev/urandom");
 		return 1;
 	}
 
 	// Allocate memory.
 	unsigned char *buffer = malloc(KEY_SIZE + VALUE_SIZE);
-	if (!buffer) {
+	if(!buffer) {
 		printf("Error: Unable to allocate memory\n");
 		close(fd);
 		return 1;
 	}
 
 	size_t bytes_read = read(fd, buffer, KEY_SIZE + VALUE_SIZE);
-	if (bytes_read != KEY_SIZE + VALUE_SIZE) {
+	if(bytes_read != KEY_SIZE + VALUE_SIZE) {
 		perror("Error: Unable to read /dev/urandom\n");
 		free(buffer);
 		close(fd);
@@ -106,16 +106,16 @@ test_data_t *allocate_test_data(size_t size) {
 }
 
 void free_test_data(test_data_t *pdata, size_t size) {
-	if (pdata == NULL) {
+	if(pdata == NULL) {
 		return;  // Nothing to free
 	}
 
-	for (size_t i = 0; i < size; i++) {
-		if (pdata[i].key != NULL) {
+	for(size_t i = 0; i < size; i++) {
+		if(pdata[i].key != NULL) {
 			free(pdata[i].key);
 			pdata[i].key = NULL;
 		}
-		if (pdata[i].value != NULL) {
+		if(pdata[i].value != NULL) {
 			free(pdata[i].value);
 			pdata[i].value = NULL;
 		}
@@ -129,7 +129,7 @@ void free_test_data(test_data_t *pdata, size_t size) {
 //------------------------------------------------------------------------------
 // Round up to the next highest power of 2 (for 32-bit numbers).
 uint32_t round_to_power_of_two_32(uint32_t v) {
-	if (v == 0) return 1;  // Edge case: 0 → 1
+	if(v == 0) return 1;  // Edge case: 0 → 1
 	v--;
 	v |= v >> 1; v |= v >> 2;
 	v |= v >> 4; v |= v >> 8;
@@ -139,7 +139,7 @@ uint32_t round_to_power_of_two_32(uint32_t v) {
 
 // Round up to the next highest power of 2 (for 64-bit numbers).
 uint64_t round_to_power_of_two_64(uint64_t v) {
-	if (v == 0) return 1;  // Edge case: 0 → 1
+	if(v == 0) return 1;  // Edge case: 0 → 1
 	v--;
 	v |= v >> 1;  v |= v >> 2;
 	v |= v >> 4;  v |= v >> 8;
@@ -149,6 +149,6 @@ uint64_t round_to_power_of_two_64(uint64_t v) {
 
 // Generic version (auto-selects 32/64 based on size_t).
 size_t round_to_power_of_two(size_t v) {
-	if (sizeof(size_t) == 4) return (size_t)round_to_power_of_two_32((uint32_t)v);
+	if(sizeof(size_t) == 4) return (size_t)round_to_power_of_two_32((uint32_t)v);
 	else return (size_t)round_to_power_of_two_64((uint64_t)v);
 }

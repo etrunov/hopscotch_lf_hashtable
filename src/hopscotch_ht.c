@@ -31,7 +31,7 @@ inline uint32_t jenkins_one_at_a_time_hash(const uint8_t *key) {
 	uint32_t hash = 0;
 
 	// This is not 0xBAADF00D :)
-	for (size_t i = 0; i < KEY_SIZE; ++i) {
+	for(size_t i = 0; i < KEY_SIZE; ++i) {
 		hash += key[i];
 		hash += (hash << 10);
 		hash ^= (hash >> 6);
@@ -71,12 +71,12 @@ void ht_print_debug(const hopscotch_hash_table_t * const ht) {
 	printf("IDX   Hom->Cur Hash     Hop bits     Key....  Val....  Neighborhood(32)\n");
 	printf("-----------------------------------------------------------------------------------------\n");
 
-	for (size_t i = 0; i < ht->capacity; i++) {
+	for(size_t i = 0; i < ht->capacity; i++) {
 		uint64_t node_info = atomic_load_explicit(&ht->nodes[i].hop_info, memory_order_acquire);
 		uint32_t node_hash = (uint32_t)(node_info >> 32);
 
 		// Maintaining only occupied buckets.
-		if (node_hash != 0) {  // Only show occupied buckets
+		if(node_hash != 0) {  // Only show occupied buckets
 			uint32_t hop_bits = (uint32_t)(node_info & 0xFFFFFFFF);
 			size_t home = node_hash & ht->mask;
 
@@ -84,9 +84,9 @@ void ht_print_debug(const hopscotch_hash_table_t * const ht) {
 			printf("[%03zu] %03zu->%03zu %08X ", i, home, i, node_hash);
 
 			// Hop Bits.
-			for (int j = 3; j >= 0; j--) {
+			for(int j = 3; j >= 0; j--) {
 				printf("%02X", (hop_bits >> (j*8)) & 0xFF);
-				if (j > 0) printf(".");
+				if(j > 0) printf(".");
 			}
 			
 			// Key - Value.
@@ -100,11 +100,11 @@ void ht_print_debug(const hopscotch_hash_table_t * const ht) {
 			uint32_t neighbor_hash = (uint32_t)(neighbor_info >> 32);
 			uint32_t hop_info = neighbor_info & 0x00000000FFFFFFFF;
 			
-			for (size_t j = 0; j < HOP_RANGE; j++) {
+			for(size_t j = 0; j < HOP_RANGE; j++) {
 				uint32_t mask = 1u << j;
-				if (hop_info & mask) {
+				if(hop_info & mask) {
 					printf("x");  // Current bucket
-				} else if (neighbor_hash != 0) {
+				} else if(neighbor_hash != 0) {
 					 printf(".");
 				} 
 			}
@@ -136,7 +136,7 @@ hopscotch_hash_table_t *ht_create(size_t capacity) {
 	
 	// Allocate single contiguous block.
 	uint8_t* buffer = aligned_alloc(64, total_size);
-	if (!buffer) return NULL;
+	if(!buffer) return NULL;
 	
 	hopscotch_hash_table_t *ht = (hopscotch_hash_table_t *)buffer;
 	ht->nodes = (hash_node_t *)(buffer + sizeof(hopscotch_hash_table_t));
@@ -165,12 +165,12 @@ bool ht_insert(
 	size_t home = INDEX(h, ht->mask); // number of buckets (mask = capacity - 1)
 
 	// Check for existing key first.
-	for (size_t i = 0; i < HOP_RANGE; i++) {
+	for(size_t i = 0; i < HOP_RANGE; i++) {
 		size_t idx = (home + i) & ht->mask;
 		uint64_t node_info = atomic_load_explicit(
 			&ht->nodes[idx].hop_info, memory_order_acquire);
-		if ((node_info >> HASH_HOP_INFO_OFFSET) == h) {
-			if (memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
+		if((node_info >> HASH_HOP_INFO_OFFSET) == h) {
+			if(memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
 				// Update existing.
 				memcpy(ht->nodes[idx].value, value, VALUE_SIZE);
 				return true;
@@ -179,12 +179,12 @@ bool ht_insert(
 	}
 
 	// Find empty slot in neighborhood.
-	for (size_t i = 0; i < HOP_RANGE; i++) {
+	for(size_t i = 0; i < HOP_RANGE; i++) {
 		size_t idx = (home + i) & ht->mask;
 		uint64_t current = atomic_load(&ht->nodes[idx].hop_info);
-		if ((current >> HASH_HOP_INFO_OFFSET) == 0) { // Empty slot
+		if((current >> HASH_HOP_INFO_OFFSET) == 0) { // Empty slot
 			uint64_t desired = ((uint64_t)h << HASH_HOP_INFO_OFFSET) | (1ULL << i);
-			if (atomic_compare_exchange_weak_explicit(
+			if(atomic_compare_exchange_weak_explicit(
 				&ht->nodes[idx].hop_info, 
 				&current, 
 				desired,
@@ -206,11 +206,11 @@ bool ht_insert(
 		(free_slot < home + MAX_RELOCATION_FACTOR * HOP_RANGE))
 	{
 		uint64_t current = atomic_load(&ht->nodes[free_slot].hop_info);
-		if ((current >> HASH_HOP_INFO_OFFSET) == 0) break;
+		if((current >> HASH_HOP_INFO_OFFSET) == 0) break;
 		free_slot++;
 	}
 
-	if (
+	if(
 		(((free_slot - home) & ht->mask) >= HOP_RANGE) &&
 		(((free_slot - home) & ht->mask) < HOP_RANGE * MAX_RELOCATION_FACTOR)
 
@@ -221,7 +221,7 @@ bool ht_insert(
 		return false; // Table may not be fully full but range is full.
 	}
 
-	if (free_slot >= ht->capacity) {
+	if(free_slot >= ht->capacity) {
 		// Table is full.
 		return false;
 	}
@@ -230,7 +230,7 @@ bool ht_insert(
 	while (free_slot >= home + MAX_RELOCATION_FACTOR * HOP_RANGE) {
 		bool moved = false;
 
-		for (size_t i = 0; i < HOP_RANGE; i++) {
+		for(size_t i = 0; i < HOP_RANGE; i++) {
 			size_t candidate = (free_slot - HOP_RANGE + 1 + i) & ht->mask;
 			uint64_t candidate_info = atomic_load_explicit(
 					&ht->nodes[candidate].hop_info,
@@ -239,7 +239,7 @@ bool ht_insert(
 			// Lower 32 bits (hop bits)
 			uint32_t candidate_hop = candidate_info & HOP_INFO_MASK;
 			
-			if (candidate_hop != 0) {
+			if(candidate_hop != 0) {
 				size_t first_hop = __builtin_ctz(candidate_hop);
 				size_t move_from = (candidate + first_hop) & ht->mask;
 				
@@ -291,7 +291,7 @@ bool ht_insert(
 				break;
 			}
 		}
-		if (!moved) {
+		if(!moved) {
 			printf("Unable to find a candidate for relocation\n");
 			return false;
 		} else {
@@ -320,15 +320,15 @@ bool ht_remove_key(
 	size_t home = INDEX(h, ht->mask);
 
 	// Search in the neighborhood for the key.
-	for (size_t i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
+	for(size_t i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
 		size_t idx = (home + i) & ht->mask;
 		uint64_t node_info = atomic_load_explicit(
 			&ht->nodes[idx].hop_info,
 			memory_order_acquire
 		);
 		
-		if ((node_info >> HASH_HOP_INFO_OFFSET) == h) {
-			if (memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
+		if((node_info >> HASH_HOP_INFO_OFFSET) == h) {
+			if(memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
 				// Found the key, now remove it.
 				// Clear the hop bit in the home bucket.
 				size_t home_idx = home;
@@ -372,7 +372,7 @@ bool ht_contains_key(
 	uint32_t h = hash_function(key);
 	size_t home = h & ht->mask;
 
-	for (size_t i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
+	for(size_t i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
 		size_t idx = (home + i) & ht->mask;
 
 		// Atomic load matches ht_remove_key's function.
@@ -382,22 +382,22 @@ bool ht_contains_key(
 
 			uint32_t node_hash = (uint32_t)(node_info >> HASH_HOP_INFO_OFFSET);
 
-		if (node_hash == h) {
+		if(node_hash == h) {
 			bool match = true;
-			for (int j = 0; j < KEY_SIZE; j++) {
+			for(int j = 0; j < KEY_SIZE; j++) {
 				uint8_t key_byte = atomic_load_explicit(
 					&ht->nodes[idx].key[j],
 					memory_order_relaxed);
-				if (key_byte != key[j]) {
+				if(key_byte != key[j]) {
 					match = false;
 					break;
 				}
 			}
 
-			if (match) {
+			if(match) {
 				// Only difference is optional value retrieval.
-				if (out_value) {
-					for (int j = 0; j < VALUE_SIZE; j++) {
+				if(out_value) {
+					for(int j = 0; j < VALUE_SIZE; j++) {
 						out_value[j] = atomic_load_explicit(
 							&ht->nodes[idx].value[j],
 							memory_order_relaxed);
@@ -417,15 +417,15 @@ bool __ht_contains(hopscotch_hash_table_t* ht, const uint8_t* key) {
 	uint32_t h = murmur_custom_hash(key);
 	size_t home = h % ht->capacity;
 
-	for (int i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
+	for(int i = 0; i < HOP_RANGE * MAX_RELOCATION_FACTOR; i++) {
 		size_t idx = (home + i) % ht->capacity;
 		uint64_t node_info = atomic_load(&ht->nodes[idx].hop_info);
 		
 		// Skip empty slots (full hash == 0)
-		if ((node_info >> 32) == 0) continue;
+		if((node_info >> 32) == 0) continue;
 		
 		// Full key comparison (critical!)
-		if (memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
+		if(memcmp(ht->nodes[idx].key, key, KEY_SIZE) == 0) {
 			return true;
 		}
 	}
