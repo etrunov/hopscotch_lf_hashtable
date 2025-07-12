@@ -4,18 +4,46 @@
 #include "hopscotch_ht_test_misc.h"
 
 /*
-The test performs Insert, Contains, and Remove (Erase) operations on the 
-hash table.
+Test Description:
+The test evaluates the performance of Insert, Contains and Remove (Erase)
+operations on a hash table under specified conditions.
 
 Parameters:
-number_of_elements – The desired number of elements to be processed.
-hash_function - hash function to be tested (available in hopscotch_ht.h).
-ht_twice_size - should hash table be twice size of desired number of elements.
-number_of_threads - Total number of threads for the hash table operations.
+	- number_of_elements - The target number of elements to be processed.
+	- hash_function – The hash function to be used for key hashing.
+					  (available functions are defined in hopscotch_ht.h).
+	- ht_twice_size – If true, the hash table will be initialized with twice 
+					  the capacity of the requested number of elements.
+	- number_of_threads – The total number of threads executing hash table
+						  operations.
+Return value:
+	- Returns `true` if the test succeeds, `false` otherwise.
+Notes:
+	The actual number of elements is adjusted using the round_to_power_of_two
+function. The final element count is further restricted to 80% by ANY_PERCENT
+(defined hopscotch_ht_test_misc.h).
+	In the test you may observe the following:
 
-Note:
-The actual number of elements will be adjusted using the round_to_power_of_two function.
-The final number of elements will be further limited to 80% of the rounded value.
+Performing operations...
+Thread  0: [I C R]
+Thread  1: [I C R]
+Thread  2: [I C R]
+Thread  3: [I C R]
+Thread  4: [I C R]
+Thread  5: [I C R]
+Thread  6: [I C R]
+...
+It illustrates the progress of a thread [I C R] where:
+I - Insert; C - Contains; R - Remove;
+Finally, the tests outlines execution time and throughput.
+ll tests has completed their flows.
+Thread  0: [I C R]  3.9575 sec 26495.56 ops/sec
+Thread  1: [I C R]  3.2953 sec 31820.44 ops/sec
+Thread  2: [I C R]  2.8813 sec 36392.37 ops/sec
+Thread  3: [I C R]  0.4661 sec 224953.64 ops/sec
+Thread  4: [I C R]  4.1129 sec 25494.36 ops/sec
+Thread  5: [I C R]  1.9036 sec 55083.67 ops/sec
+Thread  6: [I C R]  3.8072 sec 27541.71 ops/sec
 */
 bool test_run_concurrent(
 	size_t number_of_elements,
@@ -25,8 +53,19 @@ bool test_run_concurrent(
 );
 
 /*
-The test allocates data and fetch/search/lookup for the specific key/value in
-the hash table. In case if h is null, the test will create ht_size hash table.
+Test Description:
+The test lookups (searchs) for a specific key/value pair in a hopscotch hash 
+table. Also, the tests allocates test data and performs fetch/search/lookup
+operations on the hash table. If the provided hash table pointer is NULL,
+a new hash table of size `ht_size` will be created.
+
+Parameters:
+	- h - Pointer to the hopscotch hash table. If NULL, a new table is initialized.
+	- hash_function – The hash function to be used for key hashing.
+					  (available functions are defined in hopscotch_ht.h).
+	- ht_size - The size of the hash table (used only if `h` is NULL).
+Return value:
+	- Returns `true` if the test succeeds, `false` otherwise.
 */
 bool test_lookup_for_specific_key_value(
 	hopscotch_hash_table_t *h,
@@ -35,12 +74,25 @@ bool test_lookup_for_specific_key_value(
 );
 
 /*
-Basic test to perform Hash table operations:
-- Insert - mandatory;
-- Contains (optional, if validate_contains is defined);
-- Remove (optional, if need_to_remove is defined);
-Option ht_twice_size will create a hash table twice size number of elements.
-*/
+Test Description:
+Executes fundamental hash table operations including insertion, optional
+containment checks and optional removal.
+
+Parameters:
+	- number_of_elements - Total elements to insert (must be > 0).
+	- hash_function – The hash function to be used for key hashing.
+						(available functions are defined in hopscotch_ht.h).
+	- ht_twice_size - If true, initializes the hash table with
+						capacity = 2 * `number_of_elements`.
+	- validate_contains - If true, verifies existence of inserted elements.
+	- need_to_remove - If true, executes Remove operation after insertion
+						(and optional Contains check).
+Return value:
+	- Returns `true` if the test succeeds, `false` otherwise.
+Notes:
+The test does not validate thread safety. Concurrent access requires external
+synchronization.
+ */
 bool test_insert_remove_elements(
 	size_t number_of_elements,
 	hash_function_f hash_function,
@@ -50,15 +102,21 @@ bool test_insert_remove_elements(
 );
 
 /*
-The test checks that relocation region cannot be more than 
-HOP_RANGE(32) * MAX_RELOCATION_FACTOR(5) - based on the define.
+Test Description:
+The test checks that a relocation region cannot be more than
+HOP_RANGE(32) * MAX_RELOCATION_FACTOR(5) - based on the define (hopscotch_ht.h).
 The only one element must be out of scope els_in_exceeded_relocation_region = 1
 The test does:
-1. 161 random key values inserts.
-2. Check that the 161st key is not inserted.
-3. Fetch 161 - 10 element from the hash table.
-4. Print hash table that must be fancy rendered from neighborhood point of view
-   based on HOP_RANGE value (the fragment below).
+	1. 161 random key values inserts.
+		where 161 = HOP_RANGE(32) * MAX_RELOCATION_FACTOR(5) + 1 <---
+		1 <---- els_in_exceeded_relocation_region (not inserted key)
+	2. Check that the 161st key is not inserted.
+	3. Fetch 161 - 10 element from the hash table.
+	4. Print the hash table that must be fancy rendered from neighborhood
+		point of view based on HOP_RANGE value (the fragment below).
+	5. Validate contains / Fetch the elements from the table and validate it
+		across relocation.
+Fragment of the hash table in the test:
 Hopscotch Hash Table (Capacity: 256, Size: 160)
 -----------------------------------------------------------------------------------------
 IDX   Hom->Cur Hash     Hop bits     Key....  Val....  Neighborhood (32)
@@ -98,6 +156,11 @@ IDX   Hom->Cur Hash     Hop bits     Key....  Val....  Neighborhood (32)
 [033] 001->033 00000001 00.00.00.01  0C77...  B985...  [x...............................]
 [034] 001->034 00000001 00.00.00.02  082C...  7066...  [.x..............................]
 [035] 001->035 00000001 00.00.00.04  980C...  7F07...  [..x.............................]
+
+Parameters:
+	- No parameters.
+Return value:
+	- Returns `true` if the test succeeds, `false` otherwise.
 */
 bool test_relocation_and_max_relocation_value();
 

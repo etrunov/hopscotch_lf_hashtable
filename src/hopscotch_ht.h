@@ -20,11 +20,11 @@
 #define KEY_SIZE (64)
 #define VALUE_SIZE (128)
 #define HOP_RANGE (32)
+#define MAX_RELOCATION_FACTOR (5)
 #define HASH_HOP_INFO_OFFSET (32)
 #define HOP_INFO_MASK (0xFFFFFFFF)
 #define HASH_MASK (0xFFFFFFFF00000000)
 
-#define MAX_RELOCATION_FACTOR (5)
 #define INDEX(hash, mask) ((hash) & (mask))
 #define PRINT_KEY_VALUE(_k, _v) \
 	do { \

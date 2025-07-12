@@ -99,6 +99,11 @@ bool test_insert_remove_elements(
 	bool validate_contains,
 	bool need_to_remove
 ) {
+	if(number_of_elements == 0) {
+		printf("[TEST %s] Error: number of elements is 0\n", __func__);
+		return false;
+	}
+
 	size_t capacity = number_of_elements;
 
 	// Allocate twice time memory for table.
