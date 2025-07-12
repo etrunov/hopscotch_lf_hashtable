@@ -127,7 +127,7 @@ The current implementation is exclusively compatible with **Linux-based systems*
    ./build.sh
 3. Run `./hopscotch_ht_app`
 
-### Standard clen Procedure
+### Standard clean Procedure
 1. Navigate to the project root directory.
 2. Execute the build script:
    ```bash
