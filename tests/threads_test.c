@@ -196,6 +196,7 @@ bool test_run_concurrent(
 	if(!threads_insert_worker) {
 		printf("[TEST %s] Error: Unable to create threads_insert_worker\n", __func__);
 		MM_DATA_FREE;
+		ht_free(ht);
 		return false;
 	}
 	memset(threads_insert_worker, 0, sizeof(thrd_t) * number_of_threads);
@@ -206,6 +207,7 @@ bool test_run_concurrent(
 	if(!thread_insert_worker_data) {
 		printf("[TEST %s] Error: Unable to create thread_insert_worker_data\n", __func__);
 		MM_DATA_FREE;
+		ht_free(ht);
 		return false;
 	}
 	MM_DATA_WRITE(thread_insert_worker_data);
@@ -218,6 +220,7 @@ bool test_run_concurrent(
 	if(!thread_benchmark_data) {
 		printf("[TEST %s] Error: Unable to create thread_benchmark_data\n", __func__);
 		MM_DATA_FREE;
+		ht_free(ht);
 		return false;
 	}
 	MM_DATA_WRITE(thread_benchmark_data);
@@ -231,6 +234,7 @@ bool test_run_concurrent(
 	if(!pdata) {
 		printf("[TEST %s] Error: Unable to allocate test keys and values\n", __func__);
 		MM_DATA_FREE;
+		ht_free(ht);
 		return false;
 	}
 	MM_DATA_WRITE(pdata);
@@ -244,6 +248,7 @@ bool test_run_concurrent(
 		if(!progress_stages[i]) {
 			printf("[TEST %s] Error: Unable to create progress_stage %ld\n", __func__, i);
 			MM_DATA_FREE;
+			ht_free(ht);
 			return false;
 		}
 		for(int j = 0; j < PROGRESS_STAGE_TOTAL; j++)
@@ -295,6 +300,8 @@ bool test_run_concurrent(
 	if(thrd_create(&thread_print_progresst_worker, thread_print_progress_worker, 
 			&thread_print_progress_worker_data) != thrd_success) {
 		printf("[TEST %s] Error: Failed to create print progress thread\n", __func__);
+		MM_DATA_FREE;
+		ht_free(ht);
 		return false;
 	}
 
@@ -305,6 +312,8 @@ bool test_run_concurrent(
 		if(thrd_create(&threads_insert_worker[i], thread_insert_worker, 
 			&thread_insert_worker_data[i]) != thrd_success) {
 			printf("[TEST %s] Error: Failed to create insert worker thread", __func__);
+			MM_DATA_FREE;
+			ht_free(ht);
 			return false;
 		}
 	}
